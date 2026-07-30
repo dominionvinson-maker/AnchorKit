@@ -39,3 +39,8 @@ updates:
           - "ts-*"
           - "@typescript-eslint/*"
           - "eslint*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
