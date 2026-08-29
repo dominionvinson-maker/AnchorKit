@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -56,10 +56,16 @@ export function useSep10Auth(
 
   // In-flight guard: prevents duplicate concurrent SEP-10 flows.
   const inFlightRef = useRef(false);
+  const generationRef = useRef(0);
+
+  useEffect(() => () => {
+    generationRef.current += 1;
+  }, []);
 
   const authenticate = useCallback(async (walletAddress: string): Promise<void> => {
     if (inFlightRef.current) return;
     inFlightRef.current = true;
+    const generation = ++generationRef.current;
     setIsAuthenticating(true);
     setError(null);
 
@@ -68,20 +74,24 @@ export function useSep10Auth(
       const challengeXdr = await adaptersRef.current.fetchChallenge(domain, walletAddress);
       const signedXdr = await adaptersRef.current.signChallenge(challengeXdr);
       const jwt = await adaptersRef.current.submitChallenge(domain, signedXdr);
+      if (generation !== generationRef.current) return;
       setToken(jwt);
     } catch (err) {
+      if (generation !== generationRef.current) return;
       setError(
         err instanceof Error
           ? err.message
           : 'Authentication failed. Please try again.',
       );
     } finally {
+      if (generation !== generationRef.current) return;
       setIsAuthenticating(false);
       inFlightRef.current = false;
     }
   }, []);
 
   const reset = useCallback(() => {
+    generationRef.current += 1;
     setToken(null);
     setError(null);
     setIsAuthenticating(false);
