@@ -184,8 +184,8 @@ describe('generateCurlCommand', () => {
 
     expect(result).toContain('curl -X POST');
     expect(result).toContain('https://api.example.com/data');
-    expect(result).toContain('-H "Content-Type: application/json"');
-    expect(result).toContain('-H "Authorization: Bearer token"');
+    expect(result).toContain("-H 'Content-Type: application/json'");
+    expect(result).toContain("-H 'Authorization: Bearer token'");
     expect(result).toContain('-d \'{\n  "name": "test"\n}\'');
   });
 
@@ -209,6 +209,20 @@ describe('generateCurlCommand', () => {
     expect(result).toContain('curl -X POST');
     expect(result).toContain('-d');
     expect(result).not.toContain('-H');
+  });
+
+  it('escapes quotes in headers and JSON body values', () => {
+    const result = generateCurlCommand({
+      url: 'https://api.example.com/data',
+      method: 'POST',
+      headers: { 'X-Note': 'say "hello"' },
+      body: { name: "O'Brien" },
+    });
+
+    expect(result).toContain(`-H 'X-Note: say "hello"'`);
+    expect(result).toContain(`-d '{
+  "name": "O'"'"'Brien"
+}'`);
   });
 });
 

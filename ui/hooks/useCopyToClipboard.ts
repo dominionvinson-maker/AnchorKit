@@ -148,6 +148,10 @@ export function formatJsonForCopy(data: any, pretty: boolean = true): string {
   return JSON.stringify(data, null, pretty ? 2 : 0);
 }
 
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'"'"'`)}'`;
+}
+
 /**
  * Utility function to generate curl command
  */
@@ -165,7 +169,7 @@ export function generateCurlCommand(options: {
   const headerEntries = Object.entries(headers);
   if (headerEntries.length > 0) {
     const headerFlags = headerEntries
-      .map(([key, value]) => `-H "${key}: ${value}"`)
+      .map(([key, value]) => `-H ${shellQuote(`${key}: ${value}`)}`)
       .join(' \\\n  ');
     curl += ` \\\n  ${headerFlags}`;
   }
@@ -173,7 +177,7 @@ export function generateCurlCommand(options: {
   // Add body for POST/PUT/PATCH
   if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
     const bodyStr = formatJsonForCopy(body);
-    curl += ` \\\n  -d '${bodyStr}'`;
+    curl += ` \\\n  -d ${shellQuote(bodyStr)}`;
   }
 
   return curl;
