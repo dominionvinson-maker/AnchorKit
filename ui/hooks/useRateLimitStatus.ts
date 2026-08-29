@@ -122,6 +122,8 @@ export function useRateLimitStatus(
   getStatusRef.current = options?.getStatus ?? defaultGetStatus;
 
   const fetchStatus = useCallback(async () => {
+    const id = ++requestIdRef.current;
+
     if (!attestor || attestor.trim() === '') {
       setStatus(null);
       setError(null);
@@ -137,7 +139,6 @@ export function useRateLimitStatus(
       return;
     }
 
-    const id = ++requestIdRef.current;
     setLoading(true);
     setError(null);
 
